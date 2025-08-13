@@ -446,9 +446,9 @@ lifelines_ugli2_merged <- merge(lifelines_ugli2_merged, ugli2_resids, by="IID")
 #cat("lifelines ugli2 + resids dims")
 #print(dim(lifelines_ugli2_merged))
 
-###################################################################################################
-################## PART 5: Get lists of exclusions for analysis on unrelated ppl ##################
-###################################################################################################
+##########################################################################################################################
+#################### PART 5: Create combined dataset with related IIDs removed for sensitivity analysis ##################
+###########################################################################################################################
 ## List of IIDs for each chip - needed for KING to remove relatives for secondary analysis (only included those who can be included to maximise sample size). Note: to get list must have FID first, then IID. For CytoSNP, ran fine without FID included.
 #cyto_IID <- lifelines_cyto_merged[,c("IID")]
 #gsa_IID <- lifelines_gsa_merged[,c("FID", "IID")]
@@ -457,44 +457,29 @@ lifelines_ugli2_merged <- merge(lifelines_ugli2_merged, ugli2_resids, by="IID")
 #write.table(gsa_IID, file="gsa_IID_FID.txt", row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 #write.table(ugli2_IID, file="ugli2_FID_IID.txt", row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
-## When extracting lists for exclusion based on relatedness (KING kinship matrix), only including people who have phenotype data (and thus could be included in analysis) maximises sample size, so this approach is taken. Comparison below.
-## Load list of IIDs to be excluded based on KING (includes all genotyped people - removes more ppl)
-#cyto_kingexclusions_177 <- fread("KING_CYTO_CUTOFF_177.king.cutoff.out.id", header=TRUE)
-#cyto_kingexclusions_088 <- fread("KING_CYTO_CUTOFF_088.king.cutoff.out.id", header=TRUE)
-#cyto_kingexclusions_044 <- fread("KING_CYTO_CUTOFF_044.king.cutoff.out.id", header=TRUE)
-## List of IIDs to be excluded (only includes IIDs who could be included - i.e., dups/1st deg between removed)
-#cyto_kingexclusions_177_phenoavail <- fread("KING_CYTO_CUTOFF_177_phenoavail.king.cutoff.out.id", header=TRUE)
-#cyto_kingexclusions_088_phenoavail <- fread("KING_CYTO_CUTOFF_088_phenoavail.king.cutoff.out.id", header=TRUE)
-#cyto_kingexclusions_044_phenoavail <- fread("KING_CYTO_CUTOFF_044_phenoavail.king.cutoff.out.id", header=TRUE)
+##First-degree relatives removed
+combined_king_1stdeg <- fread("combined_king_1stdegree.txt",header=TRUE)
+lifelines_combined_1stremoved <- lifelines_combined[! lifelines_combined$IID %in% combined_king_1stdeg$IID,]
+cat("dim 1st deg king")
+dim(combined_king_1stdeg)
+cat("sample size once 1st degree relatives removed")
+sum(! is.na(lifelines_combined_1stremoved$IID))
 
-#print(head(cyto_kingexclusions_177))
+##Second-degree relatives removed
+combined_king_2nddeg <- fread("combined_king_2nddegree.txt",header=TRUE)
+lifelines_combined_2ndremoved <- lifelines_combined[! lifelines_combined$IID %in% combined_king_2nddeg$IID,]
+cat("dim 2nd deg king")
+dim(combined_king_2nddeg)
+cat("sample size once 2nd degree relatives removed")
+sum(! is.na(lifelines_combined_2ndremoved$IID))
 
-## Get sample size once removed related (using all geno vs IIDs who have pheno) - using those who have pheno = > sample size.
-#cat("N cyto - remove related")
-#lifelines_cyto_king_177 <- lifelines_cyto_merged[! lifelines_cyto_merged$IID %in% cyto_kingexclusions_177$IID, ]
-#lifelines_cyto_king_088 <- lifelines_cyto_merged[! lifelines_cyto_merged$IID %in% cyto_kingexclusions_088$IID, ]
-#lifelines_cyto_king_044 <- lifelines_cyto_merged[! lifelines_cyto_merged$IID %in% cyto_kingexclusions_044$IID, ]
-#sum(! is.na(lifelines_cyto_king_177$IID))
-#sum(! is.na(lifelines_cyto_king_088$IID))
-#sum(! is.na(lifelines_cyto_king_044$IID))
-#cat("N cyto - remove related when king done on IIDs who have pheno data available")
-#lifelines_cyto_king_177_max <- lifelines_cyto_merged[! lifelines_cyto_merged$IID %in% cyto_kingexclusions_177_phenoavail$IID, ]
-#lifelines_cyto_king_088_max <- lifelines_cyto_merged[! lifelines_cyto_merged$IID %in% cyto_kingexclusions_088_phenoavail$IID, ]
-#lifelines_cyto_king_044_max <- lifelines_cyto_merged[! lifelines_cyto_merged$IID %in% cyto_kingexclusions_044_phenoavail$IID, ]
-#sum(! is.na(lifelines_cyto_king_177_max$IID))
-#sum(! is.na(lifelines_cyto_king_088_max$IID))
-#sum(! is.na(lifelines_cyto_king_044_max$IID))
-
-## Load list of people to be removed from analysis
-cyto_kingexclusions_177_phenoavail <- fread("KING_CYTO_CUTOFF_177_phenoavail.king.cutoff.out.id", header=TRUE)
-cyto_kingexclusions_088_phenoavail <- fread("KING_CYTO_CUTOFF_088_phenoavail.king.cutoff.out.id", header=TRUE)
-cyto_kingexclusions_044_phenoavail <- fread("KING_CYTO_CUTOFF_044_phenoavail.king.cutoff.out.id", header=TRUE)
-gsa_kingexclusions_177_phenoavail <- fread("KING_GSA_CUTOFF_177_phenoavail.king.cutoff.out.id", header=TRUE)
-gsa_kingexclusions_088_phenoavail <- fread("KING_GSA_CUTOFF_088_phenoavail.king.cutoff.out.id", header=TRUE)
-gsa_kingexclusions_044_phenoavail <- fread("KING_GSA_CUTOFF_044_phenoavail.king.cutoff.out.id", header=TRUE)
-ugli2_kingexclusions_177_phenoavail <- fread("KING_UGLI2_CUTOFF_177_phenoavail.king.cutoff.out.id", header=TRUE)
-ugli2_kingexclusions_088_phenoavail <- fread("KING_UGLI2_CUTOFF_088_phenoavail.king.cutoff.out.id", header=TRUE)
-ugli2_kingexclusions_044_phenoavail <- fread("KING_UGLI2_CUTOFF_044_phenoavail.king.cutoff.out.id", header=TRUE)
+##Third-degree relatives removed
+combined_king_3rddeg <- fread("combined_king_3rddegree.txt",header=TRUE)
+lifelines_combined_3rdremoved <- lifelines_combined[! lifelines_combined$IID %in% combined_king_3rddeg$IID,]
+cat("dim 3rd deg king")
+dim(combined_king_3rddeg)
+cat("sample size once 3rd degree relatives removed")
+sum(! is.na(lifelines_combined_3rdremoved$IID))
 
 #############################################################################
 #################### PART 6: Analysis Prep - Merge data  ####################
