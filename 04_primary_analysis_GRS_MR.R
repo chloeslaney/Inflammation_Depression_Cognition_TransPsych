@@ -39,15 +39,16 @@ lifelines_phenotype$RFFT_final_sd <- scale(lifelines_phenotype$RFFT_final)
 lifelines_phenotype$panas_neg_total_final_sd <- scale(lifelines_phenotype$panas_neg_total_final)
 lifelines_phenotype$panas_pos_total_final_sd <- scale(lifelines_phenotype$panas_pos_total_final)
 lifelines_phenotype$hsCRP_log_sd <- scale(lifelines_phenotype$hsCRP_log)
+
+## ** checking data **
 #cat("check standardised vars")
 #describe(lifelines_phenotype$VA_RES_sd)
 #summary(lifelines_phenotype$VA_RES_sd)
 #sum(! is.na(lifelines_phenotype$VA_RES_sd))
-
-cat("health summed score details")
-describe(lifelines_phenotype$health_excluded_summedscore)
-sum(! is.na(lifelines_phenotype$health_excluded_summedscore))
-summary(lifelines_phenotype$health_excluded_summedscore)
+#cat("health summed score details")
+#describe(lifelines_phenotype$health_excluded_summedscore)
+#sum(! is.na(lifelines_phenotype$health_excluded_summedscore))
+#summary(lifelines_phenotype$health_excluded_summedscore)
 
 #Create factor
 lifelines_phenotype$education <- as.factor(lifelines_phenotype$education_attain_q_1.x)
@@ -172,6 +173,8 @@ lifelines_cyto_merged <- merge(lifelines_cyto_merged, ROSA_CYTO_PRS, by = "IID")
 lifelines_cyto_merged <- merge(lifelines_cyto_merged, SARWAR_CYTO_PRS, by = "IID") 
 lifelines_cyto_merged <- merge(lifelines_cyto_merged, PC_cyto, by = "IID")
 lifelines_cyto_merged$chip <- 1
+
+## ** checking data **
 #print(head(lifelines_cyto_merged),5)
 #cat("number of rows in cyto + pheno merged = ")
 #print(nrow(lifelines_cyto_merged))
@@ -196,6 +199,7 @@ hist(lifelines_cyto_merged$ahluwalia_gw_cyt_sd)
 hist(lifelines_cyto_merged$rosa_cyt_sd) 
 hist(lifelines_cyto_merged$sarwar_cyt_sd) 
 
+## ** checking data **
 #cat("check standardised prs")
 #describe(lifelines_cyto_merged$ahluwalia_cis_cyt_sd)
 #describe(lifelines_cyto_merged$ahluwalia_gw_cyt_sd)
@@ -216,7 +220,8 @@ cytosnp_duplicates_and_1stdegree_UGLI2 <- rename(cytosnp_duplicates_and_1stdegre
 cytosnp_duplicates_and_1stdegree_UGLI <- cytosnp_duplicates_and_1stdegree_UGLI[, c('IID')]
 cytosnp_duplicates_and_1stdegree_UGLI2 <- cytosnp_duplicates_and_1stdegree_UGLI2[, c('IID')]
 
-# Sanity checks - UGLI file all distinct, but UGLI2 file has some individuals not distinct in list
+## ** checking data **
+## UGLI file all distinct, but UGLI2 file has some individuals not distinct in list
 #cat("distinct in cyto-ugli list")
 #cyto_distinct_ugli <- distinct(cytosnp_duplicates_and_1stdegree_UGLI)
 #sum(! is.na(cyto_distinct_ugli))
@@ -250,34 +255,29 @@ sum(! is.na(lifelines_cyto_merged$IID))
 #Phenotype file (contains FID, IID, outcomes, covariates, crp)
 #Note composite cog not found and not included.
 #Get FID (differs in cyto) as needed for running reml
+
 cyto_grm_ids <- fread("GRM_CYTO_GCTA_SPARSE.grm.id", header=FALSE)
 cyto_grm_ids <- rename(cyto_grm_ids, FID=V1, IID=V2)
 lifelines_cyto_merged <- merge(lifelines_cyto_merged, cyto_grm_ids, by="IID")
 
 #pheno file
-#cyto_merged_phenotypes_gcta <- lifelines_cyto_merged[,c("FID","IID","VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","WM_RES_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd","minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1","hsCRP_log","BMI_1av1","alcohol_freq_1a_q_2","Currentsmok_1a_q_2","education")]
-#print(head(cyto_merged_phenotypes_gcta),50)
-#write.table(cyto_merged_phenotypes_gcta, "cyto_merged_pheno_for_gcta_FIDchanged.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+cyto_merged_phenotypes_gcta <- lifelines_cyto_merged[,c("FID","IID","VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","WM_RES_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd","minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1","hsCRP_log","BMI_1av1","alcohol_freq_1a_q_2","Currentsmok_1a_q_2","education")]
+print(head(cyto_merged_phenotypes_gcta),50)
+write.table(cyto_merged_phenotypes_gcta, "cyto_merged_pheno_for_gcta_FIDchanged.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 #covariate pc file
-#cyto_merged_pcs_gcta <- lifelines_cyto_merged[,c("FID","IID","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
-#write.table(cyto_merged_pcs_gcta, "cyto_merged_pcs_for_gcta_FIDchanged.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+cyto_merged_pcs_gcta <- lifelines_cyto_merged[,c("FID","IID","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
+write.table(cyto_merged_pcs_gcta, "cyto_merged_pcs_for_gcta_FIDchanged.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 ### Step 2: Load in residuals to be used as outcomes in adjusted analysis and merge with data
 cyto_resids <- fread("cyto_resids_merged.txt", header=TRUE)
 lifelines_cyto_merged <- merge(lifelines_cyto_merged, cyto_resids, by="IID") 
+
+## ** checking data **
 #cat("lifelines cyto and resids merged")
 #print(head(lifelines_cyto_merged),20)
 #cat("lifelines cyto + resids dims")
 #print(dim(lifelines_cyto_merged))
-
-################################################
-## Create file for REGENIE - another analysis ##
-################################################
-cyto_regenie_pheno_covar <- lifelines_cyto_merged[,c("FID", "IID", "VA_RES_sd","PS_RES_sd", "EM_ACC_sd", "WM_ACC_sd", "RFFT_final_sd", "panas_neg_total_final_sd", "panas_pos_total_final_sd", "AGE_1a_q_1", "GENDER_1a_v_1", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")]
-#write.table(cyto_regenie_pheno_covar, "cyto_regenie_pheno_covar.txt", sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
-#summary(cyto_regenie_pheno_covar)
-#print(head(cyto_regenie_pheno_covar))
 
 #########################################################
 #################### PART 3: GSA prep ###################
@@ -312,16 +312,16 @@ cat("number non-euro in gsa merged file")
 non_euro_gsa_merged <- subset(lifelines_gsa_merged, lifelines_gsa_merged$PCA_european=="FALSE")
 print(nrow(non_euro_gsa_merged))
 
-#cat("number euro in gsa merged file")
-#euro_gsa_merged <- subset(lifelines_gsa_merged, lifelines_gsa_merged$PCA_european=="TRUE")
-#print(nrow(euro_gsa_merged))
+cat("number euro in gsa merged file")
+euro_gsa_merged <- subset(lifelines_gsa_merged, lifelines_gsa_merged$PCA_european=="TRUE")
+print(nrow(euro_gsa_merged))
 
 #check n non-euro in genetics data (not merged file) #34
-#lifelines_gsa_genetic <- merge(gsa_linkages, SAID_CIS_PROXYADD_GSA_PRS, by="IID")
-#lifelines_gsa_genetic <- merge(lifelines_gsa_genetic, non_euro_gsa, by = "genotyping_name")
-#cat("number non-euro in genetic gsa file")
-#genetic_gsa_noneuro <- subset(lifelines_gsa_genetic, lifelines_gsa_genetic$PCA_european=="FALSE")
-#print(nrow(genetic_gsa_noneuro))
+lifelines_gsa_genetic <- merge(gsa_linkages, SAID_CIS_PROXYADD_GSA_PRS, by="IID")
+lifelines_gsa_genetic <- merge(lifelines_gsa_genetic, non_euro_gsa, by = "genotyping_name")
+cat("number non-euro in genetic gsa file")
+genetic_gsa_noneuro <- subset(lifelines_gsa_genetic, lifelines_gsa_genetic$PCA_european=="FALSE")
+print(nrow(genetic_gsa_noneuro))
 
 #################################################################################
 ## Remove duplicates and 1st-degree relatives in GSA who are present in  UGLI2 ##
@@ -366,29 +366,23 @@ lifelines_gsa_merged$FID <- lifelines_gsa_merged$IID
 
 ### Step 1: Extract files for REML (gcta to extract residuals)
 #pheno file
-#gsa_merged_phenotypes_gcta <- lifelines_gsa_merged[,c("FID","IID","VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","WM_RES_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd","minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1","hsCRP_log","BMI_1av1","alcohol_freq_1a_q_2","Currentsmok_1a_q_2","education")]
-#print(head(gsa_merged_phenotypes_gcta),50)
-#write.table(gsa_merged_phenotypes_gcta, "gsa_merged_pheno_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+gsa_merged_phenotypes_gcta <- lifelines_gsa_merged[,c("FID","IID","VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","WM_RES_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd","minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1","hsCRP_log","BMI_1av1","alcohol_freq_1a_q_2","Currentsmok_1a_q_2","education")]
+print(head(gsa_merged_phenotypes_gcta),50)
+write.table(gsa_merged_phenotypes_gcta, "gsa_merged_pheno_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 #covariate pc file
-#gsa_merged_pcs_gcta <- lifelines_gsa_merged[,c("FID","IID","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
-#write.table(gsa_merged_pcs_gcta, "gsa_merged_pcs_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+gsa_merged_pcs_gcta <- lifelines_gsa_merged[,c("FID","IID","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
+write.table(gsa_merged_pcs_gcta, "gsa_merged_pcs_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 ### Step 2: Load in residuals to be used as outcomes in adjusted analysis and merge with data
 gsa_resids <- fread("gsa_resids_merged.txt", header=TRUE)
 lifelines_gsa_merged <- merge(lifelines_gsa_merged, gsa_resids, by="IID") 
+
+## ** checking data **
 #cat("lifelines gsa and resids merged")
 #print(head(lifelines_gsa_merged),20)
 #cat("lifelines gda + resids dims")
 #print(dim(lifelines_gsa_merged))
-
-################################################
-## Create file for REGENIE - another analysis ##
-################################################
-gsa_regenie_pheno_covar <- lifelines_gsa_merged[,c("FID", "IID", "VA_RES_sd","PS_RES_sd", "EM_ACC_sd", "WM_ACC_sd", "RFFT_final_sd", "panas_neg_total_final_sd", "panas_pos_total_final_sd", "AGE_1a_q_1", "GENDER_1a_v_1", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")]
-#write.table(gsa_regenie_pheno_covar, "gsa_regenie_pheno_covar.txt", sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
-#summary(gsa_regenie_pheno_covar)
-#print(head(gsa_regenie_pheno_covar))
 
 ###############################################################
 ################### PART 4: Affymetrix Prep ##################
@@ -428,6 +422,8 @@ lifelines_ugli2_merged$sarwar_aff_sd <- scale(lifelines_ugli2_merged$sarwar_ugli
 ugli2_noneuro <- fread("nonEuropeans.flagged.samples", header=FALSE)
 ugli2_noneuro <- rename(ugli2_noneuro, FID=V1, IID=V2) 
 ugli2_geneticoutliers <- fread("UGLI2_genetic_outliers.flagged.samples", header=TRUE)
+
+## ** checking data **
 #cat("ugli2 non euro list")
 #sum(! is.na(ugli2_noneuro$IID))
 #cat("ugli2 genetic outliers")
@@ -456,29 +452,23 @@ lifelines_ugli2_merged <- merge(lifelines_ugli2_merged, ugli2_grm_ids, by="IID")
 
 ### Step 1: Extract files for REML (gcta to extract residuals)
 #pheno file
-#ugli2_merged_phenotypes_gcta <- lifelines_ugli2_merged[,c("FID","IID","VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","WM_RES_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd","minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1","hsCRP_log","BMI_1av1","alcohol_freq_1a_q_2","Currentsmok_1a_q_2","education")]
-#print(head(ugli2_merged_phenotypes_gcta),50)
-#write.table(ugli2_merged_phenotypes_gcta, "ugli2_merged_pheno_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+ugli2_merged_phenotypes_gcta <- lifelines_ugli2_merged[,c("FID","IID","VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","WM_RES_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd","minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1","hsCRP_log","BMI_1av1","alcohol_freq_1a_q_2","Currentsmok_1a_q_2","education")]
+print(head(ugli2_merged_phenotypes_gcta),50)
+write.table(ugli2_merged_phenotypes_gcta, "ugli2_merged_pheno_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 #covariate pc file
-#ugli2_merged_pcs_gcta <- lifelines_ugli2_merged[,c("FID","IID","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
-#write.table(ugli2_merged_pcs_gcta, "ugli2_merged_pcs_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+ugli2_merged_pcs_gcta <- lifelines_ugli2_merged[,c("FID","IID","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
+write.table(ugli2_merged_pcs_gcta, "ugli2_merged_pcs_for_gcta.txt", sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 ### Step 2: Load in residuals to be used as outcomes in adjusted analysis and merge with data
 ugli2_resids <- fread("ugli2_resids_merged.txt", header=TRUE)
 lifelines_ugli2_merged <- merge(lifelines_ugli2_merged, ugli2_resids, by="IID") 
+
+## ** checking data **
 #cat("lifelines ugli2 and resids merged")
 #print(head(lifelines_ugli2_merged),20)
 #cat("lifelines ugli2 + resids dims")
 #print(dim(lifelines_ugli2_merged))
-
-################################################
-## Create file for REGENIE - another analysis ##
-################################################
-ugli2_regenie_pheno_covar <- lifelines_ugli2_merged[,c("FID", "IID", "VA_RES_sd","PS_RES_sd", "EM_ACC_sd", "WM_ACC_sd", "RFFT_final_sd", "panas_neg_total_final_sd", "panas_pos_total_final_sd", "AGE_1a_q_1", "GENDER_1a_v_1", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")]
-#write.table(ugli2_regenie_pheno_covar, "ugli2_regenie_pheno_covar.txt", sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
-#summary(ugli2_regenie_pheno_covar)
-#print(head(ugli2_regenie_pheno_covar))
 
 ###################################################################################################
 ################## PART 5: Get lists of exclusions for analysis on unrelated ppl ##################
@@ -579,6 +569,7 @@ lifelines_combined$GENDER_1a_v_1 <- as.factor(lifelines_combined$GENDER_1a_v_1)
 lifelines_combined$education <- as.factor(lifelines_combined$education)
 #summary(lifelines_combined)
 
+## ** checking data **
 #Check sample size as expect
 #cat("number panas_neg_total_final_sd_CYTO")
 #sum(! is.na(lifelines_cyto_merged_clean$panas_neg_total_final_sd_res))
@@ -607,9 +598,6 @@ combined_king_1stdeg <- fread("combined_king_1stdegree.txt",header=TRUE)
 lifelines_combined_1stremoved <- lifelines_combined[! lifelines_combined$IID %in% combined_king_1stdeg$IID,]
 cat("dim 1st deg king")
 dim(combined_king_1stdeg)
-#lifelines_combined_1stremoved <- lifelines_combined[! lifelines_combined$IID %in% cyto_kingexclusions_177_phenoavail$IID,]
-#lifelines_combined_1stremoved <- lifelines_combined_1stremoved[! lifelines_combined_1stremoved$IID %in% gsa_kingexclusions_177_phenoavail$IID,]
-#lifelines_combined_1stremoved <- lifelines_combined_1stremoved[! lifelines_combined_1stremoved$IID %in% ugli2_kingexclusions_177_phenoavail$IID,]
 cat("sample size once 1st degree relatives removed")
 sum(! is.na(lifelines_combined_1stremoved$IID))
 
@@ -618,9 +606,6 @@ combined_king_2nddeg <- fread("combined_king_2nddegree.txt",header=TRUE)
 lifelines_combined_2ndremoved <- lifelines_combined[! lifelines_combined$IID %in% combined_king_2nddeg$IID,]
 cat("dim 2nd deg king")
 dim(combined_king_2nddeg)
-#lifelines_combined_2ndremoved <- lifelines_combined[! lifelines_combined$IID %in% cyto_kingexclusions_088_phenoavail$IID,]
-#lifelines_combined_2ndremoved <- lifelines_combined_2ndremoved[! lifelines_combined_2ndremoved$IID %in% gsa_kingexclusions_088_phenoavail$IID,]
-#lifelines_combined_2ndremoved <- lifelines_combined_2ndremoved[! lifelines_combined_2ndremoved$IID %in% ugli2_kingexclusions_088_phenoavail$IID,]
 cat("sample size once 2nd degree relatives removed")
 sum(! is.na(lifelines_combined_2ndremoved$IID))
 
@@ -629,9 +614,6 @@ combined_king_3rddeg <- fread("combined_king_3rddegree.txt",header=TRUE)
 lifelines_combined_3rdremoved <- lifelines_combined[! lifelines_combined$IID %in% combined_king_3rddeg$IID,]
 cat("dim 3rd deg king")
 dim(combined_king_3rddeg)
-#lifelines_combined_3rdremoved <- lifelines_combined[! lifelines_combined$IID %in% cyto_kingexclusions_044_phenoavail$IID,]
-#lifelines_combined_3rdremoved <- lifelines_combined_3rdremoved[! lifelines_combined_3rdremoved$IID %in% gsa_kingexclusions_044_phenoavail$IID,]
-#lifelines_combined_3rdremoved <- lifelines_combined_3rdremoved[! lifelines_combined_3rdremoved$IID %in% gsa_kingexclusions_044_phenoavail$IID,]
 cat("sample size once 3rd degree relatives removed")
 sum(! is.na(lifelines_combined_3rdremoved$IID))
 
@@ -651,64 +633,64 @@ sum(! is.na(lifelines_combined_3rdremoved$IID))
 
 ####### Adjusted (grammar) #######
 ##Residuals from REML used as outcome (sparse GRM included in model to predict phenotype, as pcs included in grammar method, it is not included here.)
-#cat("CRP GRS association with CRP - grammar adjusted, predictors = chip, grs")
-#mapGLMTables(data=lifelines_combined, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log_res"),z=c("chip"), model.type="lm")
-#cat("CRP GRS association with CRP - grammar adjusted, predictors =  chip, age, sex, grs")
-#mapGLMTables(data=lifelines_combined, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log_res"),z=c("AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="lm")
-#cat("CRP GRS association with CRP - grammar adjusted, no covariates")
-#said_crp_model_cis <- lm(hsCRP_log_res~said_cis_proxyadd_sd, data=lifelines_combined)
-#summary(said_crp_model_cis)
-#said_crp_model_gw <- lm(hsCRP_log_res~said_gw_proxyadd_sd, data=lifelines_combined)
-#summary(said_crp_model_gw)
-#write.table(GRS_crp_grammar, file="LL_GRS_crp_grammar_adjustedchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_crp_grammar_adjusted, file="LL_GRS_crp_grammar_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+cat("CRP GRS association with CRP - grammar adjusted, predictors = chip, grs")
+mapGLMTables(data=lifelines_combined, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log_res"),z=c("chip"), model.type="lm")
+cat("CRP GRS association with CRP - grammar adjusted, predictors =  chip, age, sex, grs")
+mapGLMTables(data=lifelines_combined, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log_res"),z=c("AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="lm")
+cat("CRP GRS association with CRP - grammar adjusted, no covariates")
+said_crp_model_cis <- lm(hsCRP_log_res~said_cis_proxyadd_sd, data=lifelines_combined)
+summary(said_crp_model_cis)
+said_crp_model_gw <- lm(hsCRP_log_res~said_gw_proxyadd_sd, data=lifelines_combined)
+summary(said_crp_model_gw)
+write.table(GRS_crp_grammar, file="LL_GRS_crp_grammar_adjustedchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_crp_grammar_adjusted, file="LL_GRS_crp_grammar_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ####### Adjusted (exclusions) #######
 #Excluded one of each pair of individuals who are 1st-degree rel, up to 2nd-deg, up to 3rd
-#GRS_crp_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("chip"), model.type="lm")
-#GRS_crp_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("chip"), model.type="lm")
-#GRS_crp_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"), z=c("chip"), model.type="lm")
-#write.table(GRS_crp_1stdeg_rem, file="LL_GRS_crp_1stdeg_rem_final_adjustchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_crp_2nddeg_rem, file="LL_GRS_crp_2nddeg_rem_final_adjustchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_crp_3rddeg_rem, file="LL_GRS_crp_3rddeg_rem_final_adjustchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#GRS_crp_1stdeg_rem_adjusted <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#GRS_crp_2nddeg_rem_adjusted <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#GRS_crp_3rddeg_rem_adjusted <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#write.table(GRS_crp_1stdeg_rem_adjusted, file="LL_GRS_crp_1stdeg_rem_final_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_crp_2nddeg_rem_adjusted, file="LL_GRS_crp_2nddeg_rem_final_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_crp_3rddeg_rem_adjusted, file="LL_GRS_crp_3rddeg_rem_final_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_crp_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("chip"), model.type="lm")
+GRS_crp_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("chip"), model.type="lm")
+GRS_crp_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"), z=c("chip"), model.type="lm")
+write.table(GRS_crp_1stdeg_rem, file="LL_GRS_crp_1stdeg_rem_final_adjustchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_crp_2nddeg_rem, file="LL_GRS_crp_2nddeg_rem_final_adjustchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_crp_3rddeg_rem, file="LL_GRS_crp_3rddeg_rem_final_adjustchiponly.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_crp_1stdeg_rem_adjusted <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+GRS_crp_2nddeg_rem_adjusted <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+GRS_crp_3rddeg_rem_adjusted <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","said_gw_proxyadd_sd"), y=c("hsCRP_log"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+write.table(GRS_crp_1stdeg_rem_adjusted, file="LL_GRS_crp_1stdeg_rem_final_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_crp_2nddeg_rem_adjusted, file="LL_GRS_crp_2nddeg_rem_final_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_crp_3rddeg_rem_adjusted, file="LL_GRS_crp_3rddeg_rem_final_covaradjusted.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ########################################################
 ## b. Check GRS associated with potential confounders ##
 ########################################################
 ######### Adjusted (grammar) #######
-#GRS_confounders_grammar <- mapGLMTables(data=lifelines_combined, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1_res","Currentsmok_1a_q_2_res","education_res"),z=c("chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#write.table(GRS_confounders_grammar, file="LL_GRS_confounders_grammar_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_confounders_grammar <- mapGLMTables(data=lifelines_combined, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1_res","Currentsmok_1a_q_2_res","education_res"),z=c("chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+write.table(GRS_confounders_grammar, file="LL_GRS_confounders_grammar_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ####### Adjusted (exclusions) #######
 ##1st-degree relatives removed
-#GRS_confounders_continuous_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#GRS_confounders_ordinal_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("education"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="polr")
-#GRS_confounders_binary_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("Currentsmok_1a_q_2"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="glm")
-#write.table(GRS_confounders_continuous_1stdeg_rem, file="LL_GRS_confounders_continuous_1stdeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_confounders_binary_1stdeg_rem, file="LL_GRS_confounders_binary_1stdeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_confounders_ordinal_1stdeg_rem, file="LL_GRS_confounders_ordinal_1stdeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_confounders_continuous_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+GRS_confounders_ordinal_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("education"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="polr")
+GRS_confounders_binary_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("Currentsmok_1a_q_2"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="glm")
+write.table(GRS_confounders_continuous_1stdeg_rem, file="LL_GRS_confounders_continuous_1stdeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_confounders_binary_1stdeg_rem, file="LL_GRS_confounders_binary_1stdeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_confounders_ordinal_1stdeg_rem, file="LL_GRS_confounders_ordinal_1stdeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ##2nd-degree relatives removed
-#GRS_confounders_continuous_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#GRS_confounders_ordinal_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("education"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="polr")
-#GRS_confounders_binary_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("Currentsmok_1a_q_2"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="glm")
-#write.table(GRS_confounders_continuous_2nddeg_rem, file="LL_GRS_confounders_continuous_2nddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_confounders_binary_2nddeg_rem, file="LL_GRS_confounders_binary_2nddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_confounders_ordinal_2nddeg_rem, file="LL_GRS_confounders_ordinal_2nddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_confounders_continuous_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+GRS_confounders_ordinal_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("education"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="polr")
+GRS_confounders_binary_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("Currentsmok_1a_q_2"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="glm")
+write.table(GRS_confounders_continuous_2nddeg_rem, file="LL_GRS_confounders_continuous_2nddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_confounders_binary_2nddeg_rem, file="LL_GRS_confounders_binary_2nddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_confounders_ordinal_2nddeg_rem, file="LL_GRS_confounders_ordinal_2nddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ##3rd-degree relatives removed
-#GRS_confounders_continuous_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
-#GRS_confounders_ordinal_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("education"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="polr")
-#GRS_confounders_binary_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("Currentsmok_1a_q_2"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="glm")
-#write.table(GRS_confounders_continuous_3rddeg_rem, file="LL_GRS_confounders_continuous_3rddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_confounders_binary_3rddeg_rem, file="LL_GRS_confounders_binary_3rddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_confounders_ordinal_3rddeg_rem, file="LL_GRS_confounders_ordinal_3rddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_confounders_continuous_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("BMI_1av1"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="lm")
+GRS_confounders_ordinal_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("education"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="polr")
+GRS_confounders_binary_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"), y=c("Currentsmok_1a_q_2"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","chip","AGE_1a_q_1","GENDER_1a_v_1"), model.type="glm")
+write.table(GRS_confounders_continuous_3rddeg_rem, file="LL_GRS_confounders_continuous_3rddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_confounders_binary_3rddeg_rem, file="LL_GRS_confounders_binary_3rddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_confounders_ordinal_3rddeg_rem, file="LL_GRS_confounders_ordinal_3rddeg_rem.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ###########################################
 ## c. Check GRS associated with outcomes ##
@@ -717,52 +699,46 @@ sum(! is.na(lifelines_combined_3rdremoved$IID))
 ####################################
 ######### Adjusted (grammar) #######
 ####################################
-#GRS_outcomes_continuous_grammar <- mapGLMTables(data=lifelines_combined, y=c("VA_RES_sd_res","PS_RES_sd_res","EM_ACC_sd_res","WM_ACC_sd_res","RFFT_final_sd_res","panas_neg_total_final_sd_res","panas_pos_total_final_sd_res","minidep_1av1_res","minianx_1av1_res","minimdd_1av1_res","minigad_1av1_res"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("AGE_1a_q_1","GENDER_1a_v_1","chip"))
-#write.table(GRS_outcomes_continuous_grammar, file="LL_GRS_outcomes_continuous_grammar_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-
-##Sanity checks - why lower when include age and gender - n=18 without gender data
-#cat("n without age data")
-#sum(is.na(lifelines_combined$AGE_1a_q_1))
-#cat("n without gender data")
-#sum(is.na(lifelines_combined$GENDER_1a_v_1))
+GRS_outcomes_continuous_grammar <- mapGLMTables(data=lifelines_combined, y=c("VA_RES_sd_res","PS_RES_sd_res","EM_ACC_sd_res","WM_ACC_sd_res","RFFT_final_sd_res","panas_neg_total_final_sd_res","panas_pos_total_final_sd_res","minidep_1av1_res","minianx_1av1_res","minimdd_1av1_res","minigad_1av1_res"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("AGE_1a_q_1","GENDER_1a_v_1","chip"))
+write.table(GRS_outcomes_continuous_grammar, file="LL_GRS_outcomes_continuous_grammar_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 #####################################
 ######### Adjusted (exclusions) #####
 #####################################
 ##1st-degree relatives (based on KING thresholds) removed
-#GRS_outcomes_continuous_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
-#GRS_outcomes_binary_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
-#write.table(GRS_outcomes_continuous_1stdeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_continuous_1stdeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_outcomes_binary_1stdeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_binary_1stdeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_outcomes_continuous_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
+GRS_outcomes_binary_1stdeg_rem <- mapGLMTables(data=lifelines_combined_1stremoved, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
+write.table(GRS_outcomes_continuous_1stdeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_continuous_1stdeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_outcomes_binary_1stdeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_binary_1stdeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ##2nd-degree relatives and above removed
-#GRS_outcomes_continuous_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
-#GRS_outcomes_binary_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
-#write.table(GRS_outcomes_continuous_2nddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_continuous_2nddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_outcomes_binary_2nddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_binary_2nddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_outcomes_continuous_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
+GRS_outcomes_binary_2nddeg_rem <- mapGLMTables(data=lifelines_combined_2ndremoved, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
+write.table(GRS_outcomes_continuous_2nddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_continuous_2nddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_outcomes_binary_2nddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_binary_2nddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ##3rd-degree relatives and above removed
-#GRS_outcomes_continuous_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
-#GRS_outcomes_binary_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
-#write.table(GRS_outcomes_continuous_3rddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_continuous_3rddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_outcomes_binary_3rddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_binary_3rddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_outcomes_continuous_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd","RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
+GRS_outcomes_binary_3rddeg_rem <- mapGLMTables(data=lifelines_combined_3rdremoved, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
+write.table(GRS_outcomes_continuous_3rddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_continuous_3rddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_outcomes_binary_3rddeg_rem, file="sens_correct_unrel/LL_GRS_outcomes_binary_3rddeg_removed_31072025.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ##########################
 ####### Unadjusted #######
 ##########################
-#GRS_outcomes_continuous_unadjusted <- mapGLMTables(data=lifelines_combined, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
-#GRS_outcomes_binary_unadjusted <- mapGLMTables(data=lifelines_combined, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
-#write.table(GRS_outcomes_continuous_unadjusted, file="LL_GRS_outcomes_continuous_unadjusted_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(GRS_outcomes_binary_unadjusted, file="LL_GRS_outcomes_binary_unadjusted_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+GRS_outcomes_continuous_unadjusted <- mapGLMTables(data=lifelines_combined, y=c("VA_RES_sd","PS_RES_sd","EM_ACC_sd","WM_ACC_sd", "RFFT_final_sd","panas_neg_total_final_sd","panas_pos_total_final_sd"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"))
+GRS_outcomes_binary_unadjusted <- mapGLMTables(data=lifelines_combined, y=c("minidep_1av1","minianx_1av1","minimdd_1av1","minigad_1av1"), x=c("said_cis_proxyadd_sd","borges_proxyadd_sd","ahluwalia_cis_sd","rosa_sd","sarwar_sd","said_gw_proxyadd_sd","ahluwalia_gw_sd"),z=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","AGE_1a_q_1","GENDER_1a_v_1","chip"), model.type="glm")
+write.table(GRS_outcomes_continuous_unadjusted, file="LL_GRS_outcomes_continuous_unadjusted_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(GRS_outcomes_binary_unadjusted, file="LL_GRS_outcomes_binary_unadjusted_geneticoutliersexcluded.txt", row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ######################
 ### d. 2sls for crp ##
 ######################
 ####### adjusted (grammar) #######
-#tsls_panasneg_saidcis_grammar_agesex <- summary(ivreg(panas_neg_total_final_sd_res ~ hsCRP_log_res + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined), diagnostics=T)
-#capture.output(tsls_panasneg_saidcis_grammar_agesex, file="LL_tsls_panasneg_saidcis_grammar_agesex.txt")
-#tsls_minianx_saidcis_grammar_agesex <- summary(ivreg(minianx_1av1_res ~ hsCRP_log_res + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined), diagnostics=T)
-#capture.output(tsls_minianx_saidcis_grammar_agesex, file="LL_tsls_minianx_saidcis_grammar_agesex.txt")
+tsls_panasneg_saidcis_grammar_agesex <- summary(ivreg(panas_neg_total_final_sd_res ~ hsCRP_log_res + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined), diagnostics=T)
+capture.output(tsls_panasneg_saidcis_grammar_agesex, file="LL_tsls_panasneg_saidcis_grammar_agesex.txt")
+tsls_minianx_saidcis_grammar_agesex <- summary(ivreg(minianx_1av1_res ~ hsCRP_log_res + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined), diagnostics=T)
+capture.output(tsls_minianx_saidcis_grammar_agesex, file="LL_tsls_minianx_saidcis_grammar_agesex.txt")
 
 #added PCs - have been adjusted for in outcome and CRP so should not be necessary. But check here.
 #tsls_panasneg_saidcis_grammar_PCadded <- summary(ivreg(panas_neg_total_final_sd_res ~ hsCRP_log_res + chip + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + chip + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined), diagnostics=T)
@@ -771,22 +747,22 @@ sum(! is.na(lifelines_combined_3rdremoved$IID))
 #capture.output(tsls_minianx_saidcis_grammar_PCadded, file="LL_tsls_minianx_saidcis_grammar_PCadded.txt")
 
 # 1st removed
-#tsls_panasneg_saidcis_1stremoved <- summary(ivreg(panas_neg_total_final_sd ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_1stremoved), diagnostics=T)
-#capture.output(tsls_panasneg_saidcis_1stremoved, file="sens_correct_unrel/LL_tsls_panasneg_saidcis_1stremoved_31072025.txt")
-#tsls_minianx_saidcis_1stremoved <- summary(ivreg(minianx_1av1 ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_1stremoved), diagnostics=T)
-#capture.output(tsls_minianx_saidcis_1stremoved, file="sens_correct_unrel/LL_tsls_minianx_saidcis_1stremoved_31072025.txt")
+tsls_panasneg_saidcis_1stremoved <- summary(ivreg(panas_neg_total_final_sd ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_1stremoved), diagnostics=T)
+capture.output(tsls_panasneg_saidcis_1stremoved, file="sens_correct_unrel/LL_tsls_panasneg_saidcis_1stremoved_31072025.txt")
+tsls_minianx_saidcis_1stremoved <- summary(ivreg(minianx_1av1 ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_1stremoved), diagnostics=T)
+capture.output(tsls_minianx_saidcis_1stremoved, file="sens_correct_unrel/LL_tsls_minianx_saidcis_1stremoved_31072025.txt")
 
 #2nd removed
-#tsls_panasneg_saidcis_2ndremoved <- summary(ivreg(panas_neg_total_final_sd ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_2ndremoved), diagnostics=T)
-#capture.output(tsls_panasneg_saidcis_2ndremoved, file="sens_correct_unrel/LL_tsls_panasneg_saidcis_2ndremoved_31072025.txt")
-#tsls_minianx_saidcis_2ndremoved <- summary(ivreg(minianx_1av1 ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_2ndremoved), diagnostics=T)
-#capture.output(tsls_minianx_saidcis_2ndremoved, file="sens_correct_unrel/LL_tsls_minianx_saidcis_2ndremoved_31072025.txt")
+tsls_panasneg_saidcis_2ndremoved <- summary(ivreg(panas_neg_total_final_sd ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_2ndremoved), diagnostics=T)
+capture.output(tsls_panasneg_saidcis_2ndremoved, file="sens_correct_unrel/LL_tsls_panasneg_saidcis_2ndremoved_31072025.txt")
+tsls_minianx_saidcis_2ndremoved <- summary(ivreg(minianx_1av1 ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_2ndremoved), diagnostics=T)
+capture.output(tsls_minianx_saidcis_2ndremoved, file="sens_correct_unrel/LL_tsls_minianx_saidcis_2ndremoved_31072025.txt")
 
 # 3rd removed
-#tsls_panasneg_saidcis_3rdremoved <- summary(ivreg(panas_neg_total_final_sd ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_3rdremoved), diagnostics=T)
-#capture.output(tsls_panasneg_saidcis_3rdremoved, file="sens_correct_unrel/LL_tsls_panasneg_saidcis_3rdremoved_31072025.txt")
-#tsls_minianx_saidcis_3rdremoved <- summary(ivreg(minianx_1av1 ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_3rdremoved), diagnostics=T)
-#capture.output(tsls_minianx_saidcis_3rdremoved, file="sens_correct_unrel/LL_tsls_minianx_saidcis_3rdremoved_31072025.txt")
+tsls_panasneg_saidcis_3rdremoved <- summary(ivreg(panas_neg_total_final_sd ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_3rdremoved), diagnostics=T)
+capture.output(tsls_panasneg_saidcis_3rdremoved, file="sens_correct_unrel/LL_tsls_panasneg_saidcis_3rdremoved_31072025.txt")
+tsls_minianx_saidcis_3rdremoved <- summary(ivreg(minianx_1av1 ~ hsCRP_log + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1 | said_cis_proxyadd_sd + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + chip + AGE_1a_q_1 + GENDER_1a_v_1, data=lifelines_combined_3rdremoved), diagnostics=T)
+capture.output(tsls_minianx_saidcis_3rdremoved, file="sens_correct_unrel/LL_tsls_minianx_saidcis_3rdremoved_31072025.txt")
 
 #############################################
 ## Check Phenotype data value on each chip ##
@@ -806,10 +782,8 @@ sum((lifelines_combined$AGE_1a_q_1 >18) & (lifelines_combined$AGE_1a_q_1 <= 60) 
 cat("n 60+")
 sum((lifelines_combined$AGE_1a_q_1 >60) & ! is.na(lifelines_combined$RFFT_final_sd))
 
-
 cat("n combined")
 sum(! is.na(lifelines_combined$IID))
-
 
 cat("n CRP and any anxiety")
 sum(! is.na(lifelines_combined$hsCRP_log_res) & ! is.na(lifelines_combined$minianx_1av1) & ! is.na(lifelines_combined$AGE_1a_q_1) & ! is.na(lifelines_combined$GENDER_1a_v_1))
@@ -1011,18 +985,4 @@ max(lifelines_combined_raw$panas_neg_total_final, na.rm=TRUE)
 #
 #cat("count unique gsa values")
 #length(unique(lifelines_gsa_merged$FID))
-#
-
-########################################################################
-## Old list of duplicate and 1st-degree rel file between cyto and gsa ##
-########################################################################
-#cytosnp_duplicates <- fread("LL_Cyto_with_duplicates_in_UGLI.txt", header=TRUE)
-#cytosnp_1stdegree_relatives_UGLI <- fread("LL_Cyto_with_1st-degree-relatives_in_UGLI.txt")
-#cytosnp_duplicates_and_1stdegree_UGLI <- fread("CytoSNP_duplicates+1stdgr_in_UGLI.txt", header=FALSE)
-
-#cytosnp_duplicates <- rename(cytosnp_duplicates, FID=FID1, IID=IID1)
-#cytosnp_1stdegree_relatives_UGLI <- rename(cytosnp_1stdegree_relatives_UGLI, IID=V2)
-#cytosnp_duplicates_and_1stdegree_UGLI <- rename(cytosnp_duplicates_and_1stdegree_UGLI, IID=V1)
-#cytosnp_duplicates <- cytosnp_duplicates[, c('IID')]
-#cytosnp_1stdegree_relatives_UGLI <- cytosnp_1stdegree_relatives_UGLI[, c('IID')]
 
